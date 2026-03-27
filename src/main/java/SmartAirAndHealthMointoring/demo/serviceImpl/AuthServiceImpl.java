@@ -4,15 +4,27 @@ import SmartAirAndHealthMointoring.demo.Repository.UserRepo;
 import SmartAirAndHealthMointoring.demo.configuration.ResponseDto;
 import SmartAirAndHealthMointoring.demo.model.User;
 import SmartAirAndHealthMointoring.demo.service.AuthService;
+import SmartAirAndHealthMointoring.demo.service.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.Map;
+
 @Service
 public class AuthServiceImpl implements AuthService {
+
+    @Autowired
+    JwtService jwtService;
+
+    @Autowired
+    AuthenticationManager authenticationManager;
 
 
     private final UserRepo userRepo;
@@ -42,6 +54,14 @@ public class AuthServiceImpl implements AuthService {
             );
         }
 
+        if(userRepo.existsByUsername(user.getUsername()))
+        {
+            return new ResponseEntity<>(
+                    ResponseDto.error("User already exists with this Username " + user.getUsername()),
+                    HttpStatus.CONFLICT
+            );
+
+        }
         if (userRepo.existsById(user.getRedgno())) {
             return new ResponseEntity<>(
                     ResponseDto.error("User already exists with Registration No: " + user.getRedgno()),
@@ -65,5 +85,29 @@ public class AuthServiceImpl implements AuthService {
                     HttpStatus.INTERNAL_SERVER_ERROR
             );
         }
+    }
+
+    @Override
+    public ResponseEntity<ResponseDto<?>> login(Map<String, String> user) {
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(user.get("username"),user.get("password"))
+        );
+
+        if(authentication.isAuthenticated())
+        {
+
+            String Token = jwtService.generateToken(user.get("username"));
+
+            return ResponseEntity.ok(
+                    ResponseDto.success(Token,"Login Successful..!")
+            );
+        }
+        else{
+            return ResponseEntity.badRequest().body(
+                    ResponseDto.error("Bad Request Wrong Credentials")
+            );
+        }
+
+
     }
 }

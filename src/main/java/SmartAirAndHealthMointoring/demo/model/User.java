@@ -2,25 +2,30 @@ package SmartAirAndHealthMointoring.demo.model;
 
 
 import SmartAirAndHealthMointoring.demo.constants.Roles;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Entity
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
-public class User {
 
+@Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class User {
     private String username;
+
     @Id
-    private String Redgno;
+    private String redgno;
+
     private String email;
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
+
     @Enumerated(EnumType.STRING)
     private Roles role;
+
 }
