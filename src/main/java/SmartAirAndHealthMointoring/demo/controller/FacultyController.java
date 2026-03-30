@@ -20,7 +20,7 @@ public class FacultyController {
         return "Faculty Details";
     }
 
-    @PostMapping("/dashboard/creation")
+    @PostMapping("/dashboard/create")
     public ResponseEntity<ResponseDto<?>> dashBoardCreation(@RequestBody TeacherDashBoard details)
     {
         return teacherDashBoardService.dashBoardcreation(details);

@@ -17,6 +17,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -34,6 +37,18 @@ public class Security {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
+                .cors(cors -> cors.configurationSource(request -> {
+                    CorsConfiguration config = new CorsConfiguration();
+                    config.setAllowedOrigins(Arrays.asList(
+                            "http://localhost:5173",            // Local development
+                            "http://100.31.196.214",           // Your EC2 Frontend (Standard Port)
+                            "http://100.31.196.214:5173"       // Your EC2 Frontend (Vite/React dev port)
+                    ));
+                    config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                    config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "Origin"));
+                    config.setAllowCredentials(true);
+                    return config;
+                }))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
@@ -42,7 +57,7 @@ public class Security {
                         .requestMatchers("/api/principal/**").hasRole("PRINICIPAL")
                         .requestMatchers("/api/student/**").hasRole("STUDENT")
                         .requestMatchers("/api/faculty/**").hasRole("FACULTY")
-
+                        .requestMatchers("/api/vitals/**").hasAnyRole("STUDENT", "FACULTY", "ADMIN", "HOD")
                         .anyRequest().authenticated()
                 )
                 .httpBasic(Customizer.withDefaults())
